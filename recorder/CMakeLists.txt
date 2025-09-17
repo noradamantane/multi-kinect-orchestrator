@@ -38,4 +38,14 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed,-rpath-link=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
 
-add_subdirectory(body-tracking-samples)
+# add_subdirectory(body-tracking-samples)
+
+add_executable(multi-kinect-orchestrator
+        main.c
+)
+
+target_link_libraries(multi-kinect-orchestrator
+    k4a::k4a
+    k4abt::k4abt
+)
+
