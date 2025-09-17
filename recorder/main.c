@@ -61,7 +61,7 @@ void export_skeletons_json(FILE *fp, k4abt_frame_t body_frame, int frame_index, 
         fprintf(fp, "          }\n        }");
     }
 
-    fprintf(fp, "\n      ]\n    }");
+    fprintf(fp, "\n      ]\n    },"); // added , to allow it to be correct json separation between frames
 }
 
 
