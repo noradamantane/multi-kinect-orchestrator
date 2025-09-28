@@ -67,18 +67,21 @@ void export_skeletons_json(FILE *fp, k4abt_frame_t body_frame, int frame_index, 
 
 int main()
 {
-    
-    FILE *fp = fopen("skeleton_output.json", "w");
+    FILE *fp = fopen("skeleton_output1.json", "w");
     fprintf(fp, "{\n  \"frames\": [\n");
-
+    
     //microsoft code
+    uint32_t device_count = k4a_device_get_installed_count();
+    printf("Found %d connected devices:\n", device_count);
+
     k4a_device_t device = NULL;
     VERIFY(k4a_device_open(0, &device), "Open K4A Device failed!");
-
-    // Start camera. Make sure depth camera is enabled.
+    
+    //configure the master device 
     k4a_device_configuration_t deviceConfig = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
     deviceConfig.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
     deviceConfig.color_resolution = K4A_COLOR_RESOLUTION_OFF;
+    deviceConfig.wired_sync_mode = K4A_WIRED_SYNC_MODE_MASTER;
     VERIFY(k4a_device_start_cameras(device, &deviceConfig), "Start K4A cameras failed!");
 
     k4a_calibration_t sensor_calibration;
@@ -88,6 +91,39 @@ int main()
     k4abt_tracker_t tracker = NULL;
     k4abt_tracker_configuration_t tracker_config = K4ABT_TRACKER_CONFIG_DEFAULT;
     VERIFY(k4abt_tracker_create(&sensor_calibration, tracker_config, &tracker), "Body tracker initialization failed!");
+
+
+    //open the other devices (start from index 1) and configure them
+    for (uint8_t deviceIndex = 1; deviceIndex < device_count; deviceIndex++)
+{
+    if (K4A_RESULT_SUCCEEDED != k4a_device_open(deviceIndex, &device))
+    {
+        printf("%d: Failed to open device\n", deviceIndex);
+        continue;
+    }
+
+    //for each device, set up config the same?
+    k4a_device_configuration_t deviceConfig = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
+    deviceConfig.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
+    deviceConfig.color_resolution = K4A_COLOR_RESOLUTION_OFF;
+    deviceConfig.wired_sync_mode = K4A_WIRED_SYNC_MODE_SUBORDINATE
+    VERIFY(k4a_device_start_cameras(device, &deviceConfig), "Start K4A cameras failed!");
+
+    k4a_calibration_t sensor_calibration;
+    VERIFY(k4a_device_get_calibration(device, deviceConfig.depth_mode, deviceConfig.color_resolution, &sensor_calibration),
+        "Get depth camera calibration failed!");
+
+    k4abt_tracker_t tracker = NULL;
+    k4abt_tracker_configuration_t tracker_config = K4ABT_TRACKER_CONFIG_DEFAULT;
+    VERIFY(k4abt_tracker_create(&sensor_calibration, tracker_config, &tracker), "Body tracker initialization failed!");
+
+
+
+}
+
+
+    // Start camera. Make sure depth camera is enabled.
+   
 
     int frame_count = 0;
     int first_frame = (frame_count == 0);
